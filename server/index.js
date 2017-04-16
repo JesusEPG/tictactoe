@@ -11,29 +11,30 @@ var jugadores = 0;
 var players=new Array();
 
 io.on('connection', function(socket){
-	setupPlayerAndConnection(socket);
-	console.log('El cliente con IP: ' + socket.handshake.address + 'se ha conectado');
-	jugadores++;
-	io.sockets.emit('jugador', jugadores);
-	console.log(tablero);
-	socket.emit('tablero', {tablero, con, jugadores}); //emite el mensaje desde el servidor a todos los clientes
-	socket.on('movimiento', function(data){
-		console.log('Tablero recibido desde el client: ' + data.tablero + ' cont: ' + data.con + ' id: ' + data.boton);
-		tablero=data.tablero;
-		con=data.con;
-		var boton = data.boton;
-		console.log('Tablero actualizado en el server con tablero del client: ' + tablero);
-		//io.sockets.emit('tablero', tablero);// emite un mensaje a todos los clientes conectados al server
-		//io.sockets.emit('tablero', {tablero, con});// emite un mensaje a todos los clientes conectados al server
-		io.sockets.emit('tablero', {tablero, con, boton});// emite un mensaje a todos los clientes conectados al server
-	});
+    setupPlayerAndConnection(socket);
+    console.log('El cliente con IP: ' + socket.handshake.address + 'se ha conectado');
+    jugadores++;
+    io.sockets.emit('jugador', jugadores);
+    console.log(tablero);
+    socket.emit('tablero', {tablero, con, jugadores}); //emite el mensaje desde el servidor a todos los clientes
+    socket.on('movimiento', function(data){
+        console.log('Tablero recibido desde el client: ' + data.tablero + ' cont: ' + data.con + ' id: ' + data.boton);
+        tablero=data.tablero;
+        con=data.con;
+        var boton = data.boton;
+        console.log('Tablero actualizado en el server con tablero del client: ' + tablero);
+        //io.sockets.emit('tablero', tablero);// emite un mensaje a todos los clientes conectados al server
+        //io.sockets.emit('tablero', {tablero, con});// emite un mensaje a todos los clientes conectados al server
+        io.sockets.emit('tablero', {tablero, con, boton});// emite un mensaje a todos los clientes conectados al server
+    });
 
-	socket.on('disconnect', function () {
-    	tablero = [[null, null, null], [null, null, null], [null, null, null]];
-    	con = 0;
-    	jugadores--;
-    	io.sockets.emit('jugador', jugadores);
-  	});
+    socket.on('disconnect', function () {
+        tablero = [[null, null, null], [null, null, null], [null, null, null]];
+        con = 0;
+        jugadores--;
+        io.sockets.emit('jugador', jugadores);
+        io.sockets.emit('recarga', tablero);
+    });
 });
 
 function setupPlayerAndConnection(socket) {
@@ -117,5 +118,5 @@ function extractParams(cookieParams,socketId) {
 }
 
 server.listen(6677, function(){
-	console.log('Servidor está funcionando en http://localhost:6677');
+    console.log('Servidor está funcionando en http://localhost:6677');
 }); 

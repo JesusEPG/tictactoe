@@ -46,6 +46,13 @@ socket.on('jugador', function(data){
   console.log(jugadores);
 });
 
+socket.on('recarga', function(data){
+
+  tablero = data;
+  console.log("Tablero despues de la recarga: ")
+  console.log(tablero);
+});
+
 function render (cont, data){
 
   boton = document.getElementById(data);
@@ -111,6 +118,7 @@ function actions(boton, x, y)
         //socket.emit('movimiento', {tablero, con});
         socket.emit('movimiento', {tablero, con, boton});
         //socket.emit('movimiento', tablero);
+        console.log(ganador());
      
         } 
         else
@@ -262,3 +270,36 @@ function getCookie(cname) {
   }
   return "";
 }
+
+function ganador() {
+    //let board = this.board;
+
+    for (var playerIndex = 0; playerIndex < 2; playerIndex++) {
+      // verifica las filas
+      for (var r = 0; r < 3; r++) {
+        var todosMarcados = true;
+        for (var c = 0; c < 3; c++) {
+          if (tablero[r][c] !== playerIndex) todosMarcados = false;
+        }
+        if (todosMarcados) return playerIndex;
+      }
+
+      // verifica las columnas
+      for (var c = 0; c < 3; c++) {
+        var todosMarcados = true;
+        for (var r = 0; r < 3; r++) {
+          if (tablero[r][c] !== playerIndex) todosMarcados = false;
+        }
+        if (todosMarcados) return playerIndex;
+      }
+
+      // verifica las diagonales
+      if (tablero[0][0] === playerIndex && tablero[1][1] === playerIndex && tablero[2][2] === playerIndex) {
+        return playerIndex;
+      }
+      if (tablero[0][2] === playerIndex && tablero[1][1] === playerIndex && tablero[2][0] === playerIndex) {
+        return playerIndex;
+      }
+    }
+    return null;
+  }
