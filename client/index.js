@@ -29,13 +29,13 @@ socket.on('connect', function () {
 
 });
 
+
+//funcion intermedia para actualizar los tableros oponentes
 socket.on('tablero', function(data){ //recibe lo que se emite desde el servidor
-  console.log("String: ")
-  console.log(data);
   
   con = data.con;
   var boton = data.boton;
-  if(boton!= undefined)//para evitar errores
+  if(boton!= undefined)//para evitar errores del primer envío de datos al conectarse
     render(con, boton);
 });
 
@@ -58,7 +58,6 @@ socket.on('turnoJugado', function(data){
   console.log(data.boton.className);
   console.log(data.boton.id);
   var boton = document.getElementById(data.boton.id);
-  //var boton=data.boton;
   if(jugadores==2)
     {
         if(data.turnoLegal)
@@ -165,13 +164,11 @@ function actions(boton, x, y)
             con++;
 
             tablero[x][y]=jugadorActual;
-        var boton = boton.id;
-        //socket.emit('movimiento', {tablero, con});
-        //socket.emit('movimiento', {tablero, con, boton});//aqui se envía
-        //socket.emit('movimiento', {"tablero": {"fil": x, "col": y}, "con": con, "boton": boton, "jugador":jugadorActual});//aqui se envía
-        socket.emit('movimiento', {"tablero": {"fil": x, "col": y}, "con": con, "boton": boton, "jugador":clientId, "marca": jugadorActual});//aqui se envía
+            var boton = boton.id;
+        
+            socket.emit('movimiento', {"tablero": {"fil": x, "col": y}, "con": con, "boton": boton, "jugador":clientId, "marca": jugadorActual});//aqui se envía
 
-        //socket.emit('movimiento', tablero);
+            //socket.emit('movimiento', tablero);
      
         } 
         else
@@ -199,48 +196,6 @@ function initializeGameParams(){
             gameParams.sessId=clientId;
         }
 
-
-       /* $('#updateName').bind("click", function () {
-            var user = prompt("Add a Name","");
-            if (user!=null) {
-                gameParams.userName=user;
-                saveParams();
-                updateDisplay();
-                socket.emit("updatePlayerName",{"name": user});
-            }
-
-
-        });*/
-
-        /*$('#viewButton').bind("click", function () {
-            if (!logViewShow){
-                $('#archiveMessages').slideDown(500);
-                $('#viewButton').empty().append("Close");
-                logViewShow=true;
-            }else
-            {
-                $('#archiveMessages').slideUp(500);
-                $('#viewButton').empty().append("All Logs");
-                logViewShow=false;
-            }
-
-
-        });*/
-
-
-        /*$('#swapIcons').bind("click", function() {
-
-            if (playerIcon=="X".trim()) {
-                playerIcon="O";
-                oppPlayerIcon="X";
-            }else
-            {
-                playerIcon="X";
-                oppPlayerIcon="O";
-            }
-            $("#myIcon").empty().append(playerIcon);
-            $("#oppIcon").empty().append(oppPlayerIcon);
-        });*/
 
         saveParams();
         updateDisplay();

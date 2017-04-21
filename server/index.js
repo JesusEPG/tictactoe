@@ -12,6 +12,10 @@ var jugadorActual;
 var players=new Array();
 var jugadorX, jugadorO;
 
+//validar que no se pueda actualizar si no hay dos jugadores en el arreglo, donde se valida lo del turno
+//expulsar jugador de players cuando se desconecte
+
+
 io.on('connection', function(socket){
     
     jugadores++;
@@ -20,16 +24,17 @@ io.on('connection', function(socket){
     console.log('El cliente con IP: ' + socket.handshake.address + 'se ha conectado');
     io.sockets.emit('jugador', jugadores);
     console.log(tablero);
-    socket.emit('tablero', {tablero, con, jugadores}); //emite el mensaje desde el servidor a todos los clientes
-    socket.on('movimiento', function(data){
+    
+    //socket.emit('tablero', {tablero, con, jugadores}); //emite el mensaje desde el servidor a todos los clientes REVISAR
+    
+    socket.on('movimiento', function(data){ 
         
         con=data.con;
         console.log('Tablero actualizado en el server con tablero del client: ' + tablero);
-        //io.sockets.emit('tablero', {tablero, con, boton});// emite un mensaje a todos los clientes conectados al server
         socket.broadcast.emit('tablero', {"con": data.con, "boton": data.boton});//emite el mensaje a todos los clientes menos el que envió el mensaje
     });
 
-    // Jugar turno coomo un Jugador
+    // Jugar turno como un Jugador
     socket.on('jugarTurno', function(data){
 
         //if (data.jugador!==socket.id) console.error("Something is Up!");
@@ -38,7 +43,11 @@ io.on('connection', function(socket){
         console.log("Id del jugador que dio click: " + data.infoJugador.jugador);
         var jugador = getJugador(data.infoJugador.jugador);//busca al jugador que hizo el movimiento por su id   
         var turnoLegal;
-        if(jugadorActual===jugador)
+
+        /*if (players.length!=2) 
+           turnoLegal=false;*/
+        console.log("Cantidad de jugadores en arreglo: " + players.length);
+        if(jugadorActual===jugador&&players.length==2)
         {
             turnoLegal=true;
             if(jugador===jugadorX)
@@ -102,6 +111,8 @@ io.on('connection', function(socket){
 
 
     socket.on('disconnect', function () {
+        console.log("Jugador: " + socket.id);
+        eliminarJugador(socket.id);
         tablero = [[null, null, null], [null, null, null], [null, null, null]];
         con = 0;
         jugadores--;
@@ -109,6 +120,18 @@ io.on('connection', function(socket){
         io.sockets.emit('recarga', tablero);
     });
 });
+
+function eliminarJugador(idJugador){
+    for (var i=0;i<players.length;++i) {
+        if (players[i].id==idJugador) {
+            console.log("Se desconecto el jugador: " + players[i].id);
+            players.splice(i, 1);
+            return;
+        }
+    }
+
+    console.error("Error: No se encontro el jugador con el id: " + idJugador);
+}
 
 function setupPlayerAndConnection(socket, juga) {
     //Cookie Process for Name - Ignore Session Id since it most likely is Stale
@@ -127,6 +150,7 @@ function setupPlayerAndConnection(socket, juga) {
         jugadorX = player;
         console.log(jugadorX);
         console.log(jugadorActual);
+        players.push(player);
     }
     else if (juga==2)
     {
@@ -136,10 +160,11 @@ function setupPlayerAndConnection(socket, juga) {
         jugadorO = player;
         console.log(jugadorO);
         console.log(jugadorActual);
+        players.push(player);
     }
 
     //var player = new Player(socket.id, gameParams.userName, gameParams.wins, gameParams.losses, gameParams.stalemate, "new", false, marca);
-    players.push(player);
+    //players.push(player);
     socket.emit('available_games', players);
     io.emit('player_update', player);
 }
@@ -208,13 +233,9 @@ function extractParams(cookieParams,socketId) {
 
     }
 
-
-
-
 }
 
 function esGanador(playerIndex) {
-    //let board = this.board;
 
     for (var playerIndex = 0; playerIndex < 2; playerIndex++) {
       // verifica las filas
@@ -244,13 +265,8 @@ function esGanador(playerIndex) {
       }
     }
 
-    /*if(con==9)
-    {
-        return 2;
-        console.log("Es un empate");
-    }*/
 
-    //Check StaleMate
+    //Verifica empate
     var empate=true;
     for (var i=0;i<3;i++) {
 
@@ -261,70 +277,11 @@ function esGanador(playerIndex) {
     }
     if (empate) {
         return 2;
-    }
-    
+    }  
 
     return null;
 
-     /*for (var i=0;i<3;i++) {
-        var lastSquare=0;
-        for (var q=0;q<3;q++) {
-            if (q==0) {
-                if (tablero[i][q]==0) break;
-                lastSquare=tablero[i][q];
-            } else
-            {
-                if (tablero[i][q]==0||lastSquare!=tablero[i][q]) break;
-                lastSquare=tablero[i][q];
-            }
-            if (q==2) return tablero[i][q];
-        }
-
-    }
-
-    for (var i=0;i<3;i++) {
-        var lastSquare=0;
-        for (var q=0;q<3;q++) {
-            if (q==0) {
-                if (tablero[q][i]==0) break;
-                lastSquare=tablero[q][i];
-            } else
-            {
-                if (tablero[q][i]==0||lastSquare!=tablero[q][i]) break;
-                lastSquare=tablero[q][i];
-            }
-            if (q==2){console.log("Gano: " + tablero[q][i]); return tablero[q][i];}
-        }
-
-    }
-
-    if (tablero[0][0]!=0&&(tablero[0][0]==tablero[1][1]&&tablero[2][2]==tablero[1][1])) {
-        console.log("Diagonal 1: "+ tablero [0][0]);
-        return  tablero[0][0];
-    }
-
-    //Check for ways to win
-    if (tablero[0][2]!=0&&tablero[0][2]==tablero[1][1]&&tablero[2][0]==tablero[1][1]) {
-        console.log("Diagonal 2: " + tablero[1][1]);
-        return  tablero[1][1];
-    }
-
-    //Check StaleMate
-    var mate=true;
-    for (var i=0;i<3;i++) {
-
-        for (var q=0;q<3;q++) {
-            if (tablero[i][q]==0) mate=false;
-        }
-
-    }
-    if (mate) {
-        return 2;
-    }
-
-    return null;*/
-
-  }
+}
 
 
 function getJugador(playerId) {
@@ -337,7 +294,6 @@ function getJugador(playerId) {
 
     console.error("Error: No se encontro el jugador con el id: " + playerId);
 }
-
 
 
 server.listen(6677, function(){
