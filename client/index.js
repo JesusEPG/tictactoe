@@ -30,13 +30,12 @@ socket.on('connect', function () {
 });
 
 socket.on('tablero', function(data){ //recibe lo que se emite desde el servidor
-  console.log('Tablero recibido desde el server: ' + data.tablero);
-  tablero = data.tablero;
+  console.log("String: ")
+  console.log(data);
+  
   con = data.con;
   var boton = data.boton;
-  //tablero = data;
-  console.log('Tablero actualizado con info del server: ' + tablero + ' boton desde el server: ' + boton);
-  if(boton!= undefined)
+  if(boton!= undefined)//para evitar errores
     render(con, boton);
 });
 
@@ -51,6 +50,58 @@ socket.on('recarga', function(data){
   tablero = data;
   console.log("Tablero despues de la recarga: ")
   console.log(tablero);
+});
+
+socket.on('turnoJugado', function(data){
+  console.log("El turno es:" + data.turnoLegal);
+  console.log(data.boton);
+  console.log(data.boton.className);
+  console.log(data.boton.id);
+  var boton = document.getElementById(data.boton.id);
+  //var boton=data.boton;
+  if(jugadores==2)
+    {
+        if(data.turnoLegal)
+        {    
+            if(boton.className=="buttons")
+            {
+                //  alert(boton.name);
+                boton.className="clicked";
+                var text;
+                if(con%2==0)
+                {
+                    text="X";
+                    jugadorActual=1;
+                }
+                else
+                {
+                    text="O";
+                    jugadorActual=0;
+                }
+                boton.value=text;
+                //alert(boton.value);
+                boton.appendChild(document.createTextNode(text));
+                con++;
+
+                //tablero[x][y]=jugadorActual;
+                var boton = data.boton.id;
+            
+                socket.emit('movimiento', {"con": con, "boton": boton, "jugador":clientId, "marca": jugadorActual});//aqui se envía
+
+                //socket.emit('movimiento', tablero);
+         
+            } 
+        }
+        else
+        {
+            //alert("Yei!!!");
+            alert('Movimiento no valido');
+        }
+    }
+    else
+      alert('Esperando por un segundo jugador!');
+
+  
 });
 
 function render (cont, data){
@@ -116,9 +167,11 @@ function actions(boton, x, y)
             tablero[x][y]=jugadorActual;
         var boton = boton.id;
         //socket.emit('movimiento', {tablero, con});
-        socket.emit('movimiento', {tablero, con, boton});
+        //socket.emit('movimiento', {tablero, con, boton});//aqui se envía
+        //socket.emit('movimiento', {"tablero": {"fil": x, "col": y}, "con": con, "boton": boton, "jugador":jugadorActual});//aqui se envía
+        socket.emit('movimiento', {"tablero": {"fil": x, "col": y}, "con": con, "boton": boton, "jugador":clientId, "marca": jugadorActual});//aqui se envía
+
         //socket.emit('movimiento', tablero);
-        console.log(ganador());
      
         } 
         else
@@ -271,35 +324,37 @@ function getCookie(cname) {
   return "";
 }
 
-function ganador() {
-    //let board = this.board;
-
-    for (var playerIndex = 0; playerIndex < 2; playerIndex++) {
-      // verifica las filas
-      for (var r = 0; r < 3; r++) {
-        var todosMarcados = true;
-        for (var c = 0; c < 3; c++) {
-          if (tablero[r][c] !== playerIndex) todosMarcados = false;
+/**
+     *
+     * Intermediate function for pass thru...
+     *
+     * @param row
+     * @param quad
+     * @returns {Function}
+     
+    function playSetup(row, quad) {
+        // alert(selection);
+        return function () {
+            playTurn(row, quad);
         }
-        if (todosMarcados) return playerIndex;
-      }
+    }*/
 
-      // verifica las columnas
-      for (var c = 0; c < 3; c++) {
-        var todosMarcados = true;
-        for (var r = 0; r < 3; r++) {
-          if (tablero[r][c] !== playerIndex) todosMarcados = false;
-        }
-        if (todosMarcados) return playerIndex;
-      }
+/**
+     * Play client turn and update the row.
+     *
+     * @param row
+     * @param quad
+     */
+    function jugarTurno(button, fila, columna) {
+        console.log("Cliente que dio click: " + clientId);
+        console.log(button);
+        var boton = button;
+        console.log(boton.id);
+        console.log(boton.className);
+        var className = boton.className;
+        //var infoJugador = {"jugador": clientId, "tablero": {"fil": fila, "col": columna}, "boton": boton};
+        var infoJugador = {"jugador": clientId, "tablero": {"fil": fila, "col": columna}, "boton": {"id": boton.id, "className": className}};
+        //$("#row" + row + "_" + quad).toggleClass("selecting");
+        socket.emit('jugarTurno', {infoJugador});
 
-      // verifica las diagonales
-      if (tablero[0][0] === playerIndex && tablero[1][1] === playerIndex && tablero[2][2] === playerIndex) {
-        return playerIndex;
-      }
-      if (tablero[0][2] === playerIndex && tablero[1][1] === playerIndex && tablero[2][0] === playerIndex) {
-        return playerIndex;
-      }
     }
-    return null;
-  }
