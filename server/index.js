@@ -16,7 +16,8 @@ var jugadorX, jugadorO;
 //expulsar jugador de players cuando se desconecte
 
 
-io.on('connection', function(socket){
+io.on('connection', function(socket)
+{
     
     jugadores++;
     //setupPlayerAndConnection(socket);
@@ -69,46 +70,30 @@ io.on('connection', function(socket){
             turnoLegal=false;
         }
 
-        //gamePlaying.completeTurn(getPlayer(data.player),[data.action.row,data.action.quad]);
-        var ganador=esGanador(jugador);
+       ganador=esGanador(jugador);
+
         console.log("El valor de ganador es: " + ganador);
         if (ganador==2) { //aqui debe ir el del empate
-
-            //io.in(gameId).emit('stale_mate',gamePlaying);
-            //io.in(gameId).emit('game_message',{message:"Stale Mate!"});
-            //getGame(data.gameId).endGame();
             console.log("Empate");
             var boton = data.infoJugador.boton;
             socket.emit('turnoJugado', {jugadorActual, boton, turnoLegal});
         } else if (ganador==0||ganador==1) {
 
-            /*var gameCompleted={
-                game:gamePlaying,
-                winner:getPlayer(socket.id)
-            };
-            io.in(gameId).emit('game_won',gameCompleted);
-            getGame(gameId).endGame();*/
             console.log("Gano: " + ganador);
             var boton = data.infoJugador.boton;
             socket.emit('turnoJugado', {jugadorActual, boton, turnoLegal});
+            var juegoGanado= {
+                ganador:getJugador(socket.id)
+            }
+            io.emit('messages', juegoGanado);
         }else
         {
-            //io.in(gameId).emit('turn_played',gamePlaying); //necesito enviar el jugador actual  
-
-            // sending to all clients, include sender
-            //var boton = {"boton": {"id": data.infoJugador.boton.id, "className": data.infoJugador.boton.className}};
             var boton = data.infoJugador.boton;
-            //io.emit('turnoJugado', {jugadorActual, boton, turnoLegal});
             console.log("Se hizo bien, y se enviara al cliente");
             socket.emit('turnoJugado', {jugadorActual, boton, turnoLegal});
-            
-
         }
 
-
-
     });
-
 
     socket.on('disconnect', function () {
         console.log("Jugador: " + socket.id);
@@ -119,7 +104,10 @@ io.on('connection', function(socket){
         io.sockets.emit('jugador', jugadores);
         io.sockets.emit('recarga', tablero);
     });
+
 });
+
+
 
 function eliminarJugador(idJugador){
     for (var i=0;i<players.length;++i) {

@@ -121,14 +121,12 @@ function render (cont, data){
             text="O";
           }
         boton.value=text;
-        //alert(boton.value);
         boton.appendChild(document.createTextNode(text));
  
     } 
     else
       {
-          //alert("Yei!!!");
-          //alert(boton.value);
+          alert('Ya esta casilla esta ocupada');
       }
 
 };
@@ -307,9 +305,34 @@ function getCookie(cname) {
         console.log(boton.id);
         console.log(boton.className);
         var className = boton.className;
-        //var infoJugador = {"jugador": clientId, "tablero": {"fil": fila, "col": columna}, "boton": boton};
-        var infoJugador = {"jugador": clientId, "tablero": {"fil": fila, "col": columna}, "boton": {"id": boton.id, "className": className}};
-        //$("#row" + row + "_" + quad).toggleClass("selecting");
+
+        var infoJugador = {
+        "jugador": clientId, 
+        "tablero": {"fil": fila,"col": columna},
+        "boton": {"id": boton.id,"className": className}
+        };
         socket.emit('jugarTurno', {infoJugador});
 
     }
+
+  socket.on('messages', function(data1) {  
+  console.log(data1);
+  resultado(data1);
+})
+
+function resultado(data1) {  
+          if (data1.ganador.id == clientId) 
+          {
+            gameParams.wins++;
+            alert('¡¡¡Ganaste!!');
+            document.getElementById('messages').innerHTML = '<strong>¡¡Ganaste!!</strong>';
+          } 
+          else 
+          {
+              gameParams.losses++;
+              alert('¡¡¡Perdiste!!');
+              document.getElementById('messages').innerHTML= 'Perdiste ;(';
+          }
+}
+
+
