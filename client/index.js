@@ -324,15 +324,28 @@ function resultado(data1) {
           if (data1.ganador.id == clientId) 
           {
             gameParams.wins++;
+            limpiarTabla();
             alert('¡¡¡Ganaste!!');
             document.getElementById('messages').innerHTML = '<strong>¡¡Ganaste!!</strong>';
           } 
           else 
           {
               gameParams.losses++;
+              limpiarTabla();
               alert('¡¡¡Perdiste!!');
               document.getElementById('messages').innerHTML= 'Perdiste ;(';
           }
 }
 
+function limpiarTabla(){
+  document.getElementById('b11').innerHTML= " ";
+  document.getElementById('b12').innerHTML= " ";
+  document.getElementById('b13').innerHTML= " ";
+  document.getElementById('b21').innerHTML= " ";
+  document.getElementById('b22').innerHTML= " ";
+  document.getElementById('b23').innerHTML= " ";
+  document.getElementById('b31').innerHTML= " ";
+  document.getElementById('b32').innerHTML= " ";
+  document.getElementById('b33').innerHTML= " ";
+}
 
