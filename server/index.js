@@ -12,21 +12,18 @@ var jugadorActual;
 var players=new Array();
 var jugadorX, jugadorO;
 
-//validar que no se pueda actualizar si no hay dos jugadores en el arreglo, donde se valida lo del turno
-//expulsar jugador de players cuando se desconecte
 
 
 io.on('connection', function(socket)
 {
     
     jugadores++;
-    //setupPlayerAndConnection(socket);
+
     setupPlayerAndConnection(socket, jugadores);
     console.log('El cliente con IP: ' + socket.handshake.address + 'se ha conectado');
     io.sockets.emit('jugador', jugadores);
     console.log(tablero);
     
-    //socket.emit('tablero', {tablero, con, jugadores}); //emite el mensaje desde el servidor a todos los clientes REVISAR
     
     socket.on('movimiento', function(data){ 
         
@@ -35,6 +32,7 @@ io.on('connection', function(socket)
         socket.broadcast.emit('tablero', {"con": data.con, "boton": data.boton});//emite el mensaje a todos los clientes menos el que envió el mensaje
     });
 
+    // Para actualizar los datos de juego una vez que se reinicie una partida
     socket.on('newJuego', function(data){ 
         
         console.log("Entra en el server");
@@ -42,7 +40,7 @@ io.on('connection', function(socket)
         con=0;
         jugadorActual=players[0];
         console.log('Nuevo Juego: ' + tablero);
-        io.emit('actualizarTablero', {"bandera": true});//emite el mensaje a todos los clientes menos el que envió el mensaje
+        io.emit('actualizarTablero', {"bandera": true}); //emite el mensaje a todos los clientes menos el que envió el mensaje
     });
 
     // Jugar turno como un Jugador
@@ -55,8 +53,7 @@ io.on('connection', function(socket)
         var jugador = getJugador(data.infoJugador.jugador);//busca al jugador que hizo el movimiento por su id   
         var turnoLegal;
 
-        /*if (players.length!=2) 
-           turnoLegal=false;*/
+       
         console.log("Cantidad de jugadores en arreglo: " + players.length);
         if(jugadorActual===jugador&&players.length==2)
         {
@@ -83,10 +80,11 @@ io.on('connection', function(socket)
        var ganador=esGanador(jugador);
 
         console.log("El valor de ganador es: " + ganador);
-        if (ganador==2) { //aqui debe ir el del empate
+        if (ganador==2) {           //aqui debe ir el del empate
             console.log("Empate");
             var boton = data.infoJugador.boton;
             socket.emit('turnoJugado', {jugadorActual, boton, turnoLegal});
+            io.emit('messages', ganador);
         } else if (ganador==0||ganador==1) {
 
             console.log("Gano: " + ganador);
@@ -116,7 +114,6 @@ io.on('connection', function(socket)
     });
 
 });
-
 
 
 function eliminarJugador(idJugador){
@@ -161,8 +158,6 @@ function setupPlayerAndConnection(socket, juga) {
         players.push(player);
     }
 
-    //var player = new Player(socket.id, gameParams.userName, gameParams.wins, gameParams.losses, gameParams.stalemate, "new", false, marca);
-    //players.push(player);
     socket.emit('available_games', players);
     io.emit('player_update', player);
 }
@@ -183,7 +178,7 @@ function getCookieValue(request,cookie) {
     return match;
 }
 
-//Player Object
+//Objeto Jugador
 function Player(clientId,userName,wins,losses,stalemate,state,ai,marca) {
 
         this.id=clientId;

@@ -17,11 +17,6 @@ var gameParams = {
 var clientId;
 
 
-/*socket.on('messages', function(data){ //recibe lo que se emite desde el servidor
-  console.log(data);
-  render(data);
-});*/
-
 socket.on('connect', function () {
       clientId = socket.io.engine.id;
       initializeGameParams();
@@ -35,16 +30,18 @@ socket.on('tablero', function(data){ //recibe lo que se emite desde el servidor
   
   con = data.con;
   var boton = data.boton;
-  if(boton!= undefined)//para evitar errores del primer envío de datos al conectarse
+  if(boton!= undefined) //para evitar errores del primer envío de datos al conectarse
     render(con, boton);
 });
 
+//actualiza el numero de jugadores conectados
 socket.on('jugador', function(data){
 
   jugadores = data;
   console.log(jugadores);
 });
 
+// Para cuando se reinica la ventana en el navegador
 socket.on('recarga', function(data){
 
   tablero = data;
@@ -52,11 +49,18 @@ socket.on('recarga', function(data){
   console.log(tablero);
 });
 
+
 socket.on('actualizarTablero', function(data){
 
   limpiarTabla();
 });
 
+socket.on('messages', function(data1) {  
+  console.log(data1);
+  resultado(data1);
+})
+
+//renderiza el movimiento jugado dependiendo de si es un movimiento legal y hay dos jugadores
 socket.on('turnoJugado', function(data){
   console.log("El turno es:" + data.turnoLegal);
   console.log(data.boton);
@@ -69,7 +73,6 @@ socket.on('turnoJugado', function(data){
         {    
             if(boton.className=="buttons")
             {
-                //  alert(boton.name);
                 boton.className="clicked";
                 var text;
                 if(con%2==0)
@@ -83,38 +86,34 @@ socket.on('turnoJugado', function(data){
                     jugadorActual=0;
                 }
                 boton.value=text;
-                //alert(boton.value);
+                
                 boton.appendChild(document.createTextNode(text));
                 con++;
 
-                //tablero[x][y]=jugadorActual;
                 var boton = data.boton.id;
             
                 socket.emit('movimiento', {"con": con, "boton": boton, "jugador":clientId, "marca": jugadorActual});//aqui se envía
-
-                //socket.emit('movimiento', tablero);
          
             } 
         }
         else
         {
-            //alert("Yei!!!");
             alert('Movimiento no valido');
         }
     }
     else
       alert('Esperando por un segundo jugador!');
-
   
 });
 
+
+// Renderiza el movimiento en el tablero del cliente que no hizo el movimiento
 function render (cont, data){
 
   boton = document.getElementById(data);
   console.log('Boton en render: ' + data);
   if(boton.className=="buttons")
     {
-      //  alert(boton.name);
         boton.className="clicked";
         var text;
         if((cont-1)%2==0)
@@ -139,16 +138,11 @@ function render (cont, data){
 
 function actions(boton, x, y)
 {
-    console.log(x);
-    //console.log(boton);
-    console.log(boton.id);
-    console.log(y);
     var jugadorActual;
     if(jugadores==2)
     {
         if(boton.className=="buttons")
         {
-            //  alert(boton.name);
             boton.className="clicked";
             var text;
             if(con%2==0)
@@ -162,7 +156,6 @@ function actions(boton, x, y)
                 jugadorActual=0;
             }
             boton.value=text;
-            //alert(boton.value);
             boton.appendChild(document.createTextNode(text));
             con++;
 
@@ -170,13 +163,10 @@ function actions(boton, x, y)
             var boton = boton.id;
         
             socket.emit('movimiento', {"tablero": {"fil": x, "col": y}, "con": con, "boton": boton, "jugador":clientId, "marca": jugadorActual});//aqui se envía
-
-            //socket.emit('movimiento', tablero);
      
         } 
         else
         {
-            //alert("Yei!!!");
             alert('Movimiento no valido');
         }
     }
@@ -199,43 +189,26 @@ function initializeGameParams(){
             gameParams.sessId=clientId;
         }
 
-
         saveParams();
         updateDisplay();
     }
 
-/**
-     * Update Display with Player info.
-     *
-     */
+// Utiliza el id de sesion y lo refleja en el fron-end del cliente
+// Aqui se pueden mostrar los demas datos de la cookie
 function updateDisplay()
 {
-  //$("#playerName").empty().append("Player: " + gameParams.userName);
-  console.log(gameParams.userName);
   document.getElementById("playerName").innerHTML= "Jugador: " + gameParams.sessId;
-  //$("#wins").empty().append(gameParams.wins);
-  //$("#losses").empty().append(gameParams.losses);
-  //$("#ties").empty().append(gameParams.stalemates);
 
 }
 
-
-/**
-     * Save Params to cookie.
-     *
-     */
-
+// Setea los datos de la cookie
 function saveParams() 
 {
   var cookieStr=gameParams.userName+"|"+gameParams.sessId+"|"+gameParams.wins+"|"+gameParams.losses+"|"+gameParams.stalemates;
   setCookie("tttGameParams",cookieStr,3);
 }
 
-/**
-     * Get the Game Params from the Cookie.
-     *
-     * @param cookieParams
-     */
+// Obtiene los datos de la cookie
 
 function getGameParams(cookieParams) 
 {
@@ -247,14 +220,6 @@ function getGameParams(cookieParams)
   gameParams.stalemates=parseStr[4];
 }
 
-
-    /**
-     * Set the Cookie.
-     *
-     * @param cname
-     * @param cvalue
-     * @param exdays
-     */
 
 function setCookie(cname, cvalue, exdays) 
 {
@@ -282,28 +247,9 @@ function getCookie(cname) {
   return "";
 }
 
-/**
-     *
-     * Intermediate function for pass thru...
-     *
-     * @param row
-     * @param quad
-     * @returns {Function}
-     
-    function playSetup(row, quad) {
-        // alert(selection);
-        return function () {
-            playTurn(row, quad);
-        }
-    }*/
-
-/**
-     * Play client turn and update the row.
-     *
-     * @param row
-     * @param quad
-     */
-    function jugarTurno(button, fila, columna) {
+// Funcion que recolecta la informacion del jugador que hizo el movimiento, y el movimiento
+// se envia la info al serve para ser evaluada
+function jugarTurno(button, fila, columna) {
         console.log("Cliente que dio click: " + clientId);
         console.log(button);
         var boton = button;
@@ -318,25 +264,23 @@ function getCookie(cname) {
         };
         socket.emit('jugarTurno', {infoJugador});
 
-    }
-
-  socket.on('messages', function(data1) {  
-  console.log(data1);
-  resultado(data1);
-})
+}
 
 function resultado(data1) {  
-          if (data1.ganador.id == clientId) 
+          if(data1==2)
+          {
+            alert('Empate');
+            document.getElementById("reinicio").style.display = "block";
+          }
+          else if (data1.ganador.id == clientId) 
           {
             gameParams.wins++;
-            //limpiarTabla();
             alert('¡¡¡Ganaste!!');
             document.getElementById('messages').innerHTML = '<strong>¡¡Ganaste!!</strong>';
           } 
           else 
           {
               gameParams.losses++;
-              //limpiarTabla();
               document.getElementById("reinicio").style.display = "block"
               alert('¡¡¡Perdiste!!');
               document.getElementById('messages').innerHTML= 'Perdiste ;(';
@@ -344,14 +288,15 @@ function resultado(data1) {
 }
 
 function nuevoJuego(){
-  console.log("SIRVE!!!");
-  document.getElementById("reinicio").style.display ="none";
+  //document.getElementById("reinicio").style.display ="none";
   socket.emit('newJuego', {"bandera": true});
 }
 
+//Limpia el tablero una vez que se presione el boton de reinicio
 function limpiarTabla(){
 
   con=0;
+  document.getElementById("reinicio").style.display ="none";
   document.getElementById('messages').innerHTML= '';
   document.getElementById('b11').innerHTML= " ";
   document.getElementById('b11').className="buttons";
@@ -379,5 +324,7 @@ function limpiarTabla(){
 
   document.getElementById('b33').innerHTML= " ";
   document.getElementById('b33').className="buttons";
+
+  alert('Se inició un nuevo juego!!');
 }
 
