@@ -157,6 +157,9 @@ body
 	 top:305px;
 	 left:305px;
 	}
+	#reinicio{
+		display: none;
+	}
 	.instrucciones{
 		background-color: #818181;
 		border-radius: 25px;

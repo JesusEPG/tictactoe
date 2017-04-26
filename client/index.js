@@ -52,6 +52,11 @@ socket.on('recarga', function(data){
   console.log(tablero);
 });
 
+socket.on('actualizarTablero', function(data){
+
+  limpiarTabla();
+});
+
 socket.on('turnoJugado', function(data){
   console.log("El turno es:" + data.turnoLegal);
   console.log(data.boton);
@@ -324,28 +329,55 @@ function resultado(data1) {
           if (data1.ganador.id == clientId) 
           {
             gameParams.wins++;
-            limpiarTabla();
+            //limpiarTabla();
             alert('¡¡¡Ganaste!!');
             document.getElementById('messages').innerHTML = '<strong>¡¡Ganaste!!</strong>';
           } 
           else 
           {
               gameParams.losses++;
-              limpiarTabla();
+              //limpiarTabla();
+              document.getElementById("reinicio").style.display = "block"
               alert('¡¡¡Perdiste!!');
               document.getElementById('messages').innerHTML= 'Perdiste ;(';
           }
 }
 
+function nuevoJuego(){
+  console.log("SIRVE!!!");
+  document.getElementById("reinicio").style.display ="none";
+  socket.emit('newJuego', {"bandera": true});
+}
+
 function limpiarTabla(){
+
+  con=0;
+  document.getElementById('messages').innerHTML= '';
   document.getElementById('b11').innerHTML= " ";
+  document.getElementById('b11').className="buttons";
+
   document.getElementById('b12').innerHTML= " ";
+  document.getElementById('b12').className="buttons";
+
   document.getElementById('b13').innerHTML= " ";
+  document.getElementById('b13').className="buttons";
+
   document.getElementById('b21').innerHTML= " ";
+  document.getElementById('b21').className="buttons";
+
   document.getElementById('b22').innerHTML= " ";
+  document.getElementById('b22').className="buttons";
+
   document.getElementById('b23').innerHTML= " ";
+  document.getElementById('b23').className="buttons";
+
   document.getElementById('b31').innerHTML= " ";
+  document.getElementById('b31').className="buttons";
+
   document.getElementById('b32').innerHTML= " ";
+  document.getElementById('b32').className="buttons";
+
   document.getElementById('b33').innerHTML= " ";
+  document.getElementById('b33').className="buttons";
 }
 

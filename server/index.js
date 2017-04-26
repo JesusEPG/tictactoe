@@ -35,6 +35,16 @@ io.on('connection', function(socket)
         socket.broadcast.emit('tablero', {"con": data.con, "boton": data.boton});//emite el mensaje a todos los clientes menos el que envió el mensaje
     });
 
+    socket.on('newJuego', function(data){ 
+        
+        console.log("Entra en el server");
+        tablero = [[null, null, null], [null, null, null], [null, null, null]];
+        con=0;
+        jugadorActual=players[0];
+        console.log('Nuevo Juego: ' + tablero);
+        io.emit('actualizarTablero', {"bandera": true});//emite el mensaje a todos los clientes menos el que envió el mensaje
+    });
+
     // Jugar turno como un Jugador
     socket.on('jugarTurno', function(data){
 
@@ -70,7 +80,7 @@ io.on('connection', function(socket)
             turnoLegal=false;
         }
 
-       ganador=esGanador(jugador);
+       var ganador=esGanador(jugador);
 
         console.log("El valor de ganador es: " + ganador);
         if (ganador==2) { //aqui debe ir el del empate
